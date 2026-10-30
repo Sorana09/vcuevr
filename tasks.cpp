@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "tasks.h"
-#include "timer.h"
-
+#include "delay.h"
 static int pas = 0;
 static uint8_t button = 0, oldButton = 0;
+static uint8_t state = 0; // 0-off, 1-pc4, 2-pc5
 
 void pins_init(void) {
   DDRC |= (1<<PC0) | (1<<PC1) | (1<<PC2) | (1<<PC4) | (1<<PC5);
@@ -12,7 +12,7 @@ void pins_init(void) {
 }
 
 void task1(void) {
-  if (timer_done()) {
+  if (delay_done()) {
     pas++;
     if (pas > 3) {
       PORTC &= ~0b110;
@@ -26,7 +26,15 @@ void task1(void) {
 void task2(void) {
   button = !(PIND & (1<<PD4));
   if (button == 1 && oldButton == 0) {
-    PORTC ^= (1<<PC4) | (1<<PC5);
+    state = (state + 1) % 3;
+
+    PORTC &= ~((1<<PC4) | (1<<PC5)); //both off
+    if(state == 1) {
+      PORTC = (1<<PC4);
+    }
+    else if(state == 2){
+      PORTC = (1<<PC5);
+    }
   }
   oldButton = button;
 }
