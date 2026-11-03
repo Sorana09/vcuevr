@@ -55,44 +55,29 @@ void task3(){
   EIMSK |= (1<<INT0); 
 }
 
+ISR(TIMER1_COMPA_vect){
+  //PORTC &= ~0b111;            
+  led4 = (led4 + 1) % 4; 
+  PORTC = (PORTC & ~0b111) | ((1<<led4) - 1);
+}
+
 void task4(){
-  DDRC |= (1<<PC0) | (1<<PC1) | (1<<PC2);
-  PORTC &= ~0b111;
-  PORTC |= (1<<PC0);
+  DDRC |= (1<<PC0) | (1<<PC1) | (1<<PC2); 
+  led4 = 1;
+  PORTC = (PORTC & ~0b111);
 
   TCCR1A = 0;
-  TCCR1B = (1<<WGM12) | (1<<CS12); // ctc mode + /256
-  TCNT1 = 0;
-  OCR1A = 15624;
-  //TIFR1 = (1<<OCF1A);
-  TIMSK1 = (1<<OCIE1A);
+  TCCR1B = (1<<WGM12) | (1<<CS12);  // CTC mode, prescaler 256
+  TCNT1  = 0;
+  OCR1A  = 15624;                   // 0.25s
+  TIMSK1 = (1<<OCIE1A);   
 }
-
-ISR(TIMER1_COMPA_vect){
-  PORTC &= ~(1<<led4);
-  led4 = (led4 + 1) % 3;
-  PORTC |= (1<<led4);
-}
-
-// void task4(){
-
-//   if(TIFR1 & (1<<OCF1A)){ 
-//     TIRF1 = (1<<OCF1A);
-//     PORTC &= ~(1<<led4);
-
-//     led4 = (led4 + 1) % 3;
-//     PORTC |= (1<<led4);
-//   }
-
-// }
-
 
 void task5(){
   DDRD |= (1<<PD5);
 
   TCCR0A = (1<<COM0B1) | (1<<WGM01) | (1<<WGM00); //Connects the timer to pin 5, and picks pwm mode
   TCCR0B = (1<<WGM02) | (1<<CS01) | (1<<CS00);    //mode 7 (fast PWM, TOP = OCR0A) + prescaler /64
-
 
   TCNT0 = 0;
   OCR0A = 249;
