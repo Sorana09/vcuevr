@@ -7,6 +7,10 @@ static uint8_t state = 0; // 0-pc5, 1-pc4
 
 static uint8_t led4 = 0; // 0-pc1 , 1-pc2, 2-pc3
 
+static uint8_t duty = 0;   // 0 = 0%, 249 = 100%
+static int8_t dir = 1;  
+static uint8_t ms5 = 0;
+
 void pins_init(void) {
   DDRC |= (1<<PC0) | (1<<PC1) | (1<<PC2) | (1<<PC4) | (1<<PC5);
   DDRD &= ~(1<<PD4); 
@@ -51,7 +55,7 @@ void task3(){
   EIMSK |= (1<<INT0); 
 }
 
-void task4_init(){
+void task4(){
   DDRC |= (1<<PC0) | (1<<PC1) | (1<<PC2);
   PORTC &= ~0b111;
   PORTC |= (1<<PC0);
@@ -82,3 +86,32 @@ ISR(TIMER1_COMPA_vect){
 
 // }
 
+
+void task5(){
+  DDRD |= (1<<PD5);
+
+  TCCR0A = (1<<COM0B1) | (1<<WGM01) | (1<<WGM00); //Connects the timer to pin 5, and picks pwm mode
+  TCCR0B = (1<<WGM02) | (1<<CS01) | (1<<CS00);    //mode 7 (fast PWM, TOP = OCR0A) + prescaler /64
+
+
+  TCNT0 = 0;
+  OCR0A = 249;
+  OCR0B = 0;// brightness starts at 0%
+
+  TIMSK0 |= (1<<OCIE0A);
+}
+
+ISR(TIMER0_COMPA_vect){
+  ms5 ++;
+  if(ms5 >= 4){ //evry 4 ms
+    ms5 = 0;
+    if(duty == 249){ // 100 % brighter then goes darker
+      dir = -1;
+    }
+    else if(duty == 0){
+      dir = 1;
+    }
+    duty += dir;
+    OCR0B = duty; // give the new brightness to the timer
+  }
+}

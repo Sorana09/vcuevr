@@ -1,18 +1,12 @@
 #include "tasks.h"
-
-
-
 void setup() {
-
-  task3();  
   pins_init();
-  task4_init();
+  task3();
+  task4();
+  task5();
 }
 
 void loop() {
   //task1();
   task2();
 }
-
-
-
